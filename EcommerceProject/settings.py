@@ -10,23 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load local development settings without committing payment credentials.
+for env_line in (BASE_DIR / '.env').read_text().splitlines() if (BASE_DIR / '.env').exists() else []:
+    if '=' in env_line and not env_line.lstrip().startswith('#'):
+        env_key, env_value = env_line.split('=', 1)
+        os.environ.setdefault(env_key.strip(), env_value.strip().strip('"').strip("'"))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3(e2!#s05j_391x9m$-+r#v8s1!8g!ef$0vdw-fbcv+^kw(=&-'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'unsafe-development-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [host for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',') if host]
 
 
 # Application definition
@@ -41,6 +47,7 @@ INSTALLED_APPS = [
     'EcommerceApp',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -56,11 +63,25 @@ MIDDLEWARE = [
 
 # settings/development.py
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000",
     "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "http://localhost:3002",
-    
+    "http://127.0.0.1:3002",
+    "http://127.0.0.1:8001",
+    "http://localhost:8001",
+    "http://0.0.0.0:8001",
 ]
+
+# The static frontend uses session cookies, so CORS must name trusted origins;
+# browsers reject credentialed requests when the server replies with wildcard CORS.
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [origin for origin in os.environ.get(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'http://127.0.0.1:8001,http://localhost:8001,http://0.0.0.0:8001',
+).split(',') if origin]
 
 ROOT_URLCONF = 'EcommerceProject.urls'
 
@@ -129,7 +150,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-MEDIA_URL = 'img/'
+MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -140,3 +161,27 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'EcommerceApp.CustomUser'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 24,
+}
+
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
+PAYSTACK_CALLBACK_URL = os.environ.get('PAYSTACK_CALLBACK_URL', '')
+ALLOW_CASH_ON_DELIVERY = os.environ.get('ALLOW_CASH_ON_DELIVERY', 'false').lower() == 'true'
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'false').lower() == 'true'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Ecommerce API',
+    'DESCRIPTION': 'API documentation for the Ecommerce project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
