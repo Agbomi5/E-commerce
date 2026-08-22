@@ -180,6 +180,12 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .card,
 .product-card,
 .category-card,
@@ -912,8 +918,70 @@ button.secondary {
 }
 
 @media (max-width: 900px) {
-  .detail-page {
+  .detail-page .product-detail {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .detail-image {
+    min-height: 250px;
+    max-height: 300px;
+  }
+
+  .detail-image img {
+    max-height: 300px;
+    object-fit: contain;
+  }
+
+  .detail-copy h1 {
+    font-size: 1.5rem;
+  }
+
+  .detail-copy > .price {
+    font-size: 1.4rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .purchase-panel {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .purchase-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .quantity-control {
+    justify-content: center;
+  }
+
+  .purchase-actions {
+    flex-direction: column;
+  }
+
+  .purchase-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-thumbnails {
+    gap: 0.5rem;
+  }
+
+  .product-thumbnail {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .rating-summary {
+    padding: 1rem;
+  }
+
+  .detail-page {
+    padding: 1rem;
   }
 }
 
@@ -923,6 +991,16 @@ button.secondary {
   background: none;
   border: none;
   font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--text, #fff);
+}
+
+.mobile-search-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.3rem;
   cursor: pointer;
   padding: 0.5rem;
   color: var(--text, #fff);
@@ -966,6 +1044,21 @@ button.secondary {
   justify-content: flex-start;
 }
 
+/* Mobile search bar expandable */
+.mobile-search-bar {
+  display: none;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.mobile-search-bar.open {
+  display: flex;
+}
+
+.mobile-search-bar .search-form {
+  width: 100%;
+}
+
 @media (max-width: 640px) {
   .header-inner {
     flex-wrap: nowrap;
@@ -982,6 +1075,7 @@ button.secondary {
     display: none;
   }
 
+  .mobile-search-toggle,
   .mobile-menu-toggle {
     display: flex;
     align-items: center;
