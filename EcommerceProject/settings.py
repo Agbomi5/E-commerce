@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'drf_spectacular',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -184,6 +185,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # WhiteNoise for serving static files in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Cloudinary for media file storage in production
+USE_CLOUDINARY = os.environ.get('USE_CLOUDINARY', 'false').lower() == 'true'
+if USE_CLOUDINARY:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+
+    cloudinary.config(
+        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        api_key=os.environ.get('CLOUDINARY_API_KEY'),
+        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+    )
+    DEFAULT_FILE_STORAGE = 'storages.backends.cloudinary.CloudinaryStorage'
 
 
 
