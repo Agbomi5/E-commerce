@@ -5,3 +5,5 @@ Ecom/
 db.sqlite3
 media/
 staticfiles/
+.vercel
+.env*

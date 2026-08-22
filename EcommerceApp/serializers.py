@@ -38,6 +38,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     current_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     in_stock = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = ['id', 'name', 'price', 'sale_price', 'current_price', 'slug', 'image', 'featured', 'sku', 'stock_quantity', 'in_stock', 'rating']
@@ -46,6 +47,22 @@ class ProductListSerializer(serializers.ModelSerializer):
         try: rating = obj.rating
         except ProductRating.DoesNotExist: return {'average_rating': 0, 'total_reviews': 0}
         return {'average_rating': rating.average_rating, 'total_reviews': rating.total_reviews}
+    def get_image(self, obj):
+        from django.conf import settings
+        if not obj.image:
+            return None
+        if settings.USE_CLOUDINARY:
+            import cloudinary
+            try:
+                return cloudinary.CloudinaryImage(str(obj.image)).build_url()
+            except:
+                pass
+        url = obj.image.url
+        if url.startswith('/'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(url)
+        return url
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -70,24 +87,75 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     current_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     similar_products = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = ['id', 'name', 'description', 'price', 'sale_price', 'current_price', 'sku', 'stock_quantity', 'is_active', 'metadata', 'slug', 'image', 'featured', 'category', 'images', 'variants', 'reviews', 'rating', 'similar_products']
     def get_similar_products(self, product):
         return ProductListSerializer(Product.objects.filter(category=product.category, is_active=True).exclude(pk=product.pk)[:6], many=True, context=self.context).data
+    def get_image(self, obj):
+        from django.conf import settings
+        if not obj.image:
+            return None
+        if settings.USE_CLOUDINARY:
+            import cloudinary
+            try:
+                return cloudinary.CloudinaryImage(str(obj.image)).build_url()
+            except:
+                pass
+        url = obj.image.url
+        if url.startswith('/'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(url)
+        return url
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Category
         fields = ['id', 'name', 'image', 'slug']
+    def get_image(self, obj):
+        from django.conf import settings
+        if not obj.image:
+            return None
+        if settings.USE_CLOUDINARY:
+            import cloudinary
+            try:
+                return cloudinary.CloudinaryImage(str(obj.image)).build_url()
+            except:
+                pass
+        url = obj.image.url
+        if url.startswith('/'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(url)
+        return url
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):
     products = ProductListSerializer(many=True, read_only=True)
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Category
         fields = ['id', 'name', 'image', 'slug', 'products']
+    def get_image(self, obj):
+        from django.conf import settings
+        if not obj.image:
+            return None
+        if settings.USE_CLOUDINARY:
+            import cloudinary
+            try:
+                return cloudinary.CloudinaryImage(str(obj.image)).build_url()
+            except:
+                pass
+        url = obj.image.url
+        if url.startswith('/'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(url)
+        return url
 
 
 class AddressSerializer(serializers.ModelSerializer):
