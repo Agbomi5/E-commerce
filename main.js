@@ -44,7 +44,7 @@ async function renderFooter() {
       const url = urls[platform];
       if (url) { link.href = url; link.classList.remove('hidden'); } else { link.classList.add('hidden'); }
     });
-    const copyEl = $('footer-copy'); if (copyEl) copyEl.textContent = `© ${new Date().getFullYear()} ${settings.company_name || 'Agbomi Shop'}. All rights reserved.`;
+    const copyEl = $('footer-copy'); if (copyEl) copyEl.textContent = `© ${new Date().getFullYear()} ${settings.company_name || 'A M TECH SOLUTIONS'}. All rights reserved.`;
   } catch { /* footer is non-critical */ }
 }
 function renderStars(target, value) {
@@ -61,7 +61,7 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
   const rating = document.createElement('div'); rating.className = 'card-rating'; const stars = document.createElement('span'); stars.className = 'rating-stars'; renderStars(stars, product.rating?.average_rating); const count = document.createElement('span'); count.textContent = `(${product.rating?.total_reviews || 0})`; rating.append(stars, count);
   const actions = document.createElement('div'); actions.className = 'product-actions';
   const add = document.createElement('button'); add.type = 'button'; add.textContent = product.in_stock === false ? 'Out of stock' : 'Add to cart'; add.disabled = product.in_stock === false;
-  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: 1 }) }); await renderHeader(); setMessage(`${product.name} was added to your cart.`); } catch (error) { setMessage(error.message, true); } };
+  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: 1 }) }); await renderHeader(); updateCartNotification(); setMessage(`${product.name} was added to your cart.`); } catch (error) { setMessage(error.message, true); } };
   const link = document.createElement('a'); link.className = 'button-link'; link.href = `product.html?slug=${encodeURIComponent(product.slug)}`; link.textContent = 'View product'; link.onclick = event => { event.preventDefault(); card.classList.add('is-clicking'); setTimeout(() => { location.href = link.href; }, 320); };
   const wishlist = document.createElement('button'); wishlist.type = 'button'; wishlist.className = 'secondary wishlist-toggle';
   const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥ Saved' : '♡ Wishlist'; wishlist.setAttribute('aria-pressed', String(saved)); };
@@ -81,6 +81,19 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
 async function currentUser() { try { return await api('/auth/me/'); } catch { return null; } }
 function requireLogin() { location.href = 'auth.html'; }
 
+function updateCartNotification() {
+  const dot = document.querySelector('.cart-notification-dot');
+  if (!dot) return;
+  const me = $('profile-bar')?.dataset.me === 'true';
+  if (!me) {
+    dot.classList.remove('show');
+    return;
+  }
+  api('/cart/').then(cart => {
+    dot.classList.toggle('show', cart.items?.length > 0);
+  }).catch(() => {});
+}
+
 async function renderHeader() {
   const target = $('profile-bar'); if (!target) return;
   target.classList.remove('hidden'); target.replaceChildren();
@@ -97,6 +110,7 @@ async function renderHeader() {
     try { count.textContent = (await api('/cart/')).items.length; } catch { /* cart status is non-critical */ }
   } else { target.append(cart); }
   renderMobileNav();
+  updateCartNotification();
 }
 function bindSearch() {
   const form = $('search-form');
@@ -199,7 +213,7 @@ async function loadProduct() {
   const changeQuantity = amount => { quantity.value = Math.max(1, (Number(quantity.value) || 1) + amount); };
   $('quantity-decrease').onclick = () => changeQuantity(-1); $('quantity-increase').onclick = () => changeQuantity(1);
   quantity.onchange = () => { quantity.value = Math.max(1, Number(quantity.value) || 1); };
-  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: Number(quantity.value) || 1 }) }); location.href = 'cart.html'; } catch (error) { setMessage(error.message, true); } };
+  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: Number(quantity.value) || 1 }) }); updateCartNotification(); location.href = 'cart.html'; } catch (error) { setMessage(error.message, true); } };
   const wishlist = $('wishlist-button');
   const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥ Saved to wishlist' : '♡ Save to wishlist'; wishlist.setAttribute('aria-pressed', String(saved)); };
   const me = await currentUser();

@@ -189,7 +189,7 @@ textarea {
 
 @media (max-width: 480px) {
   .card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 }
@@ -1020,6 +1020,22 @@ button.secondary {
   cursor: pointer;
   padding: 0.5rem;
   color: var(--text, #fff);
+  position: relative;
+}
+
+.cart-notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  display: none;
+}
+
+.cart-notification-dot.show {
+  display: block;
 }
 
 .mobile-search-toggle {
