@@ -9,7 +9,18 @@ async function api(path, options = {}) {
   if (!['GET', 'HEAD'].includes(options.method || 'GET') && getCsrf()) headers['X-CSRFToken'] = getCsrf();
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers, credentials: 'include' });
   const data = response.status === 204 ? null : await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(data.detail || `Request failed (${response.status})`), { status: response.status });
+  if (!response.ok) {
+    let message = data.detail || `Request failed (${response.status})`;
+    if (response.status === 400 && data) {
+      const errors = [];
+      for (const [field, msgs] of Object.entries(data)) {
+        if (Array.isArray(msgs)) errors.push(...msgs);
+        else if (typeof msgs === 'string') errors.push(msgs);
+      }
+      if (errors.length) message = errors.join(' ');
+    }
+    throw Object.assign(new Error(message), { status: response.status });
+  }
   return data;
 }
 function setMessage(text, bad = false) { const el = $('status-message') || $('auth-message') || $('review-message'); if (el) { el.textContent = text; el.style.color = bad ? '#f87171' : '#86efac'; } }
@@ -230,6 +241,18 @@ async function loadAccount() {
   $('new-address-button').onclick = () => openForm(); $('cancel-address-button').onclick = closeForm;
   await redraw(); form.onsubmit = async event => { event.preventDefault(); try { const addressId = idField.value; const endpoint = addressId ? `/addresses/${addressId}/` : '/addresses/'; await api(endpoint, { method: addressId ? 'PATCH' : 'POST', body: JSON.stringify(Object.fromEntries(new FormData(form))) }); closeForm(); await redraw(); setMessage('Address saved.'); } catch (error) { setMessage(error.message, true); } };
 }
-async function submitAuth(event, endpoint) { event.preventDefault(); try { await api(endpoint, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.target))) }); location.href = 'index.html'; } catch (error) { setMessage(error.message, true); } }
+async function submitAuth(event, endpoint) {
+  event.preventDefault();
+  try {
+    await api(endpoint, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.target))) });
+    location.href = 'index.html';
+  } catch (error) {
+    let message = error.message;
+    if (error.status === 400 && error.message.includes('already exists')) {
+      message = 'An account with this username or email already exists. Try logging in instead.';
+    }
+    setMessage(message, true);
+  }
+}
 function bindAuthTabs() { const login = $('login-form'), signup = $('signup-form'), loginTab = $('login-tab'), signupTab = $('signup-tab'); const show = view => { const isLogin = view === 'login'; login.classList.toggle('hidden', !isLogin); signup.classList.toggle('hidden', isLogin); loginTab.classList.toggle('active', isLogin); signupTab.classList.toggle('active', !isLogin); loginTab.setAttribute('aria-selected', String(isLogin)); signupTab.setAttribute('aria-selected', String(!isLogin)); }; loginTab.onclick = () => show('login'); signupTab.onclick = () => show('signup'); }
 document.addEventListener('DOMContentLoaded', async () => { try { await api('/auth/csrf/'); bindSearch(); await renderHeader(); await renderFooter(); const page = location.pathname.split('/').pop() || 'index.html'; if (page === 'index.html') await loadHome(); else if (page === 'category.html') await loadCategory(); else if (page === 'product.html') await loadProduct(); else if (page === 'cart.html') await loadCart(); else if (page === 'checkout.html') await loadCheckout(); else if (page === 'account.html') await loadAccount(); else if (page === 'auth.html') { bindAuthTabs(); $('login-form').onsubmit = event => submitAuth(event, '/auth/login/'); $('signup-form').onsubmit = event => submitAuth(event, '/auth/register/'); } } catch (error) { setMessage(error.message, true); } });
