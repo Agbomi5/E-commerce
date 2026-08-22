@@ -1,42 +1,66 @@
-"""
-URL configuration for EcommerceProject project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import FileResponse
 from django.conf.urls.static import static
 
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+
 
 def home(request):
-    return JsonResponse({"status": "Ecommerce API is running"})
+    return FileResponse(
+        open(settings.BASE_DIR / 'index.html', 'rb'),
+        content_type='text/html'
+    )
+
+
+def frontend_file(request, filename):
+    return FileResponse(
+        open(settings.BASE_DIR / filename, 'rb')
+    )
+
 
 urlpatterns = [
+    # Frontend
     path('', home, name='home'),
+
+    path('main.css', frontend_file, {'filename': 'main.css'}),
+    path('main.js', frontend_file, {'filename': 'main.js'}),
+
+    path('account.html', frontend_file, {'filename': 'account.html'}),
+    path('auth.html', frontend_file, {'filename': 'auth.html'}),
+    path('cart.html', frontend_file, {'filename': 'cart.html'}),
+    path('category.html', frontend_file, {'filename': 'category.html'}),
+    path('checkout.html', frontend_file, {'filename': 'checkout.html'}),
+    path('product.html', frontend_file, {'filename': 'product.html'}),
+
+    # Django admin
     path('admin/', admin.site.urls),
-    path('', include('EcommerceApp.urls')),
 
+    # Django API
+    path('api/', include('EcommerceApp.urls')),
 
+    # API documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/schema/redoc/', SpectacularRedocView.as_view  (url_name='schema'), name='redoc'),
+    path(
+        'api/schema/swagger-ui/',
+        SpectacularSwaggerView.as_view(url_name='schema'),
+        name='swagger-ui'
+    ),
+    path(
+        'api/schema/redoc/',
+        SpectacularRedocView.as_view(url_name='schema'),
+        name='redoc'
+    ),
 ]
 
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )

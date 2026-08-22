@@ -1,4 +1,4 @@
-const API_BASE = window.AGBOMI_API_BASE || `${location.protocol}//${location.hostname}:8000`;
+const API_BASE = window.AGBOMI_API_BASE || '/api';
 const $ = id => document.getElementById(id);
 const naira = value => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(value || 0);
 const getCsrf = () => document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
