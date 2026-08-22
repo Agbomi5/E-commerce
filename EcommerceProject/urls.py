@@ -21,7 +21,11 @@ from django.conf.urls.static import static
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+def home(request):
+    return JsonResponse({"status": "Ecommerce API is running"})
+
 urlpatterns = [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('', include('EcommerceApp.urls')),
 
