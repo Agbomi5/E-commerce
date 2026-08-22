@@ -86,7 +86,8 @@ textarea {
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #080808;
+  background: #ffffff;
+  color: #000000;
 }
 
 .search-form button {
@@ -1252,5 +1253,71 @@ button.secondary {
 .bank-details { display: grid; gap: 0.75rem; }
 .bank-detail-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: #0b1222; }
 .bank-detail-label { color: var(--muted); font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.bank-detail-value { color: var(--text); font-weight: 700; text-align: right; word-break: break-word; }
+.bank-detail-value { color: var(--text); font-weight: 700; text-align: right; word-break: break-word; text-transform: uppercase; }
 .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; }
+
+/* Payment page mobile styles */
+@media (max-width: 640px) {
+  .modal {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 85vh;
+  }
+
+  .modal-header {
+    padding: 1rem 1rem 0;
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 0.75rem 1rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .payment-choice {
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .payment-choice .method-icon {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+  }
+
+  .payment-choice .method-name {
+    font-size: 0.9rem;
+  }
+
+  .payment-choice .method-desc {
+    font-size: 0.75rem;
+  }
+
+  .bank-detail-row {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .bank-detail-label {
+    font-size: 0.75rem;
+  }
+
+  .bank-detail-value {
+    font-size: 0.85rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
