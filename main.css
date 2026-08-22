@@ -1241,91 +1241,119 @@ button.secondary {
   .address-card { align-items: flex-start; flex-direction: column; }
 
   .page-content {
-    padding: 0.5rem;
+    padding: 0.25rem;
     max-width: 100%;
   }
 
   .checkout-page h1 {
-    font-size: 1.2rem;
-    margin: 0.5rem 0;
+    display: none;
   }
 
   .checkout-form {
-    gap: 0.5rem;
+    gap: 0.25rem;
+    display: flex;
+    flex-direction: column;
   }
 
   .checkout-form label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .checkout-form select {
-    padding: 0.5rem;
-    font-size: 0.85rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
   }
 
   .checkout-summary {
-    padding: 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
   }
 
   .payment-method {
     margin: 0;
     padding: 0;
+    border: none;
   }
 
   .payment-method legend {
-    font-size: 0.85rem;
-    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+    padding: 0;
   }
 
   .payment-choice {
-    padding: 0.5rem 0.65rem;
-    margin-bottom: 0.35rem;
-    column-gap: 0.5rem;
-    row-gap: 0.1rem;
-    border-radius: 10px;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.2rem;
+    column-gap: 0.4rem;
+    row-gap: 0.05rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
   }
 
   .payment-choice .method-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-    font-size: 0.85rem;
-    border-radius: 8px;
+    width: 1.2rem;
+    height: 1.2rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    flex-shrink: 0;
   }
 
   .payment-choice .method-name {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
   }
 
   .payment-choice .method-desc {
-    font-size: 0.65rem;
+    display: none;
   }
 
   .payment-choice input {
-    width: 0.9rem;
-    height: 0.9rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
   }
 
   .payment-choice .method-badge {
-    font-size: 0.55rem;
-    padding: 0.1rem 0.35rem;
-    margin-left: 1.75rem;
+    display: none;
   }
 
   .payment-security {
-    font-size: 0.7rem;
-    margin: 0.35rem 0 0;
+    display: none;
   }
 
   #checkout-submit {
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
-    min-height: 2.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+    min-height: 2rem;
+    border-radius: 6px;
+    margin-top: 0.25rem;
+  }
+
+  .saved-payment-methods {
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 
   .saved-payment-choice {
+    padding: 0.4rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  #address-needed {
+    font-size: 0.75rem;
     padding: 0.5rem;
-    font-size: 0.8rem;
+  }
+
+  #checkout-result, #status-message {
+    font-size: 0.75rem;
+    padding: 0.25rem 0;
   }
 }
 @media (max-width: 780px) { .auth-layout { grid-template-columns: 1fr; } .auth-intro { min-height: 310px; padding: 2rem; } .auth-intro .brand { margin-bottom: 3rem; } .auth-card { margin-top: -1rem; } }
