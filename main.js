@@ -85,6 +85,7 @@ async function renderHeader() {
   const target = $('profile-bar'); if (!target) return;
   target.classList.remove('hidden'); target.replaceChildren();
   const me = await currentUser();
+  target.dataset.me = me ? 'true' : 'false';
   const cart = document.createElement('a'); cart.className = 'cart-link'; cart.href = 'cart.html'; cart.title = 'Shopping cart'; cart.setAttribute('aria-label', 'Shopping cart');
   const icon = document.createElement('span'); icon.className = 'cart-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = '🛒';
   const count = document.createElement('span'); count.className = 'cart-count'; count.textContent = '0'; cart.append(icon, count);
@@ -95,8 +96,65 @@ async function renderHeader() {
     target.append(account, wishlist, cart, logout);
     try { count.textContent = (await api('/cart/')).items.length; } catch { /* cart status is non-critical */ }
   } else { target.append(cart); }
+  renderMobileNav();
 }
 function bindSearch() { const form = $('search-form'); if (!form) return; form.onsubmit = event => { event.preventDefault(); const term = $('search-input').value.trim(); location.href = `index.html${term ? `?query=${encodeURIComponent(term)}` : ''}`; }; }
+
+function bindMobileMenu() {
+  const toggle = $('mobile-menu-toggle');
+  const nav = $('mobile-nav');
+  const close = $('mobile-nav-close');
+  if (!toggle || !nav) return;
+  toggle.onclick = () => nav.classList.add('open');
+  if (close) close.onclick = () => nav.classList.remove('open');
+  nav.querySelectorAll('a, button:not(.mobile-nav-close)').forEach(el => {
+    el.onclick = () => nav.classList.remove('open');
+  });
+}
+
+function renderMobileNav() {
+  const nav = $('mobile-nav');
+  if (!nav) return;
+  nav.replaceChildren();
+  const close = document.createElement('button');
+  close.className = 'mobile-nav-close';
+  close.setAttribute('aria-label', 'Close menu');
+  close.textContent = '✕';
+  nav.appendChild(close);
+
+  const searchForm = document.createElement('form');
+  searchForm.className = 'search-form';
+  searchForm.innerHTML = '<input type="search" placeholder="Search products..." /><button type="submit">Search</button>';
+  searchForm.onsubmit = event => {
+    event.preventDefault();
+    const term = searchForm.querySelector('input').value.trim();
+    location.href = `index.html${term ? `?query=${encodeURIComponent(term)}` : ''}`;
+  };
+  nav.appendChild(searchForm);
+
+  const me = $('profile-bar')?.dataset.me === 'true';
+  if (me) {
+    const account = document.createElement('a');
+    account.href = 'account.html';
+    account.textContent = 'My Account';
+    const wishlist = document.createElement('a');
+    wishlist.href = 'account.html#wishlist';
+    wishlist.textContent = '♡ Wishlist';
+    const cart = document.createElement('a');
+    cart.href = 'cart.html';
+    cart.textContent = '🛒 Cart';
+    const logout = document.createElement('button');
+    logout.className = 'secondary';
+    logout.textContent = 'Logout';
+    logout.onclick = async () => { await api('/auth/logout/', { method: 'POST' }); location.href = 'auth.html'; };
+    nav.append(account, wishlist, cart, logout);
+  } else {
+    const login = document.createElement('a');
+    login.href = 'auth.html';
+    login.textContent = 'Login / Sign up';
+    nav.appendChild(login);
+  }
+}
 
 async function loadHome() {
   const query = new URLSearchParams(location.search).get('query');
@@ -255,4 +313,4 @@ async function submitAuth(event, endpoint) {
   }
 }
 function bindAuthTabs() { const login = $('login-form'), signup = $('signup-form'), loginTab = $('login-tab'), signupTab = $('signup-tab'); const show = view => { const isLogin = view === 'login'; login.classList.toggle('hidden', !isLogin); signup.classList.toggle('hidden', isLogin); loginTab.classList.toggle('active', isLogin); signupTab.classList.toggle('active', !isLogin); loginTab.setAttribute('aria-selected', String(isLogin)); signupTab.setAttribute('aria-selected', String(!isLogin)); }; loginTab.onclick = () => show('login'); signupTab.onclick = () => show('signup'); }
-document.addEventListener('DOMContentLoaded', async () => { try { await api('/auth/csrf/'); bindSearch(); await renderHeader(); await renderFooter(); const page = location.pathname.split('/').pop() || 'index.html'; if (page === 'index.html') await loadHome(); else if (page === 'category.html') await loadCategory(); else if (page === 'product.html') await loadProduct(); else if (page === 'cart.html') await loadCart(); else if (page === 'checkout.html') await loadCheckout(); else if (page === 'account.html') await loadAccount(); else if (page === 'auth.html') { bindAuthTabs(); $('login-form').onsubmit = event => submitAuth(event, '/auth/login/'); $('signup-form').onsubmit = event => submitAuth(event, '/auth/register/'); } } catch (error) { setMessage(error.message, true); } });
+document.addEventListener('DOMContentLoaded', async () => { try { await api('/auth/csrf/'); bindSearch(); bindMobileMenu(); renderMobileNav(); await renderHeader(); await renderFooter(); const page = location.pathname.split('/').pop() || 'index.html'; if (page === 'index.html') await loadHome(); else if (page === 'category.html') await loadCategory(); else if (page === 'product.html') await loadProduct(); else if (page === 'cart.html') await loadCart(); else if (page === 'checkout.html') await loadCheckout(); else if (page === 'account.html') await loadAccount(); else if (page === 'auth.html') { bindAuthTabs(); $('login-form').onsubmit = event => submitAuth(event, '/auth/login/'); $('signup-form').onsubmit = event => submitAuth(event, '/auth/register/'); } } catch (error) { setMessage(error.message, true); } });
