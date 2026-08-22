@@ -145,16 +145,6 @@ function renderMobileNav() {
   close.textContent = '✕';
   nav.appendChild(close);
 
-  const searchForm = document.createElement('form');
-  searchForm.className = 'search-form';
-  searchForm.innerHTML = '<input type="search" placeholder="Search products..." /><button type="submit">Search</button>';
-  searchForm.onsubmit = event => {
-    event.preventDefault();
-    const term = searchForm.querySelector('input').value.trim();
-    location.href = `index.html${term ? `?query=${encodeURIComponent(term)}` : ''}`;
-  };
-  nav.appendChild(searchForm);
-
   const me = $('profile-bar')?.dataset.me === 'true';
   if (me) {
     const account = document.createElement('a');
