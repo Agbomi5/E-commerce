@@ -30,10 +30,20 @@ for env_line in (BASE_DIR / '.env').read_text().splitlines() if (BASE_DIR / '.en
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'unsafe-development-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'false').lower() == 'true'
 
-ALLOWED_HOSTS = [host for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0,.vercel.app').split(',') if host]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        '127.0.0.1,localhost,0.0.0.0'
+    ).split(',')
+    if host.strip()
+]
 
+# Allow Vercel deployment domains
+if '.vercel.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.vercel.app')
 
 # Application definition
 
@@ -63,7 +73,7 @@ MIDDLEWARE = [
 
 # settings/development.py
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
@@ -72,16 +82,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8001",
     "http://localhost:8001",
     "http://0.0.0.0:8001",
+
+    # Production frontend
+    "https://a-m-teach-solutions.vercel.app",
 ]
 
-# The static frontend uses session cookies, so CORS must name trusted origins;
-# browsers reject credentialed requests when the server replies with wildcard CORS.
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [origin for origin in os.environ.get(
-    'DJANGO_CSRF_TRUSTED_ORIGINS',
-    'http://127.0.0.1:8001,http://localhost:8001,http://0.0.0.0:8001',
-).split(',') if origin]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        'DJANGO_CSRF_TRUSTED_ORIGINS',
+        'http://127.0.0.1:8001,http://localhost:8001,http://0.0.0.0:8001,https://a-m-teach-solutions.vercel.app'
+    ).split(',')
+    if origin.strip()
+]
 
 ROOT_URLCONF = 'EcommerceProject.urls'
 
