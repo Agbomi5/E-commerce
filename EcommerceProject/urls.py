@@ -27,6 +27,7 @@ def frontend_file(request, filename):
 urlpatterns = [
     # Frontend
     path('', home, name='home'),
+    path('index.html', home, name='index_html'),
 
     path('main.css', frontend_file, {'filename': 'main.css'}),
     path('main.js', frontend_file, {'filename': 'main.js'}),
