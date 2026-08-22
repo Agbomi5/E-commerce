@@ -255,14 +255,27 @@ textarea {
 
 button {
   outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 button:focus {
   outline: none;
+  box-shadow: none;
 }
 
 button:active {
   outline: none;
+  box-shadow: none;
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .product-card.is-clicking {

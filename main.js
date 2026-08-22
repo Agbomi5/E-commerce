@@ -134,14 +134,14 @@ function bindSearch() {
 function bindMobileMenu() {
   const toggle = $('mobile-menu-toggle');
   const nav = $('mobile-nav');
-  const close = $('mobile-nav-close');
   const searchToggle = $('mobile-search-toggle');
   const searchBar = $('mobile-search-bar');
   if (toggle && nav) {
     toggle.onclick = () => nav.classList.add('open');
-    if (close) close.onclick = () => nav.classList.remove('open');
-    nav.querySelectorAll('a, button:not(.mobile-nav-close)').forEach(el => {
-      el.onclick = () => nav.classList.remove('open');
+    nav.addEventListener('click', (e) => {
+      if (e.target.classList.contains('mobile-nav-close') || e.target === nav) {
+        nav.classList.remove('open');
+      }
     });
   }
   if (searchToggle && searchBar) {
@@ -157,6 +157,10 @@ function renderMobileNav() {
   close.className = 'mobile-nav-close';
   close.setAttribute('aria-label', 'Close menu');
   close.textContent = '✕';
+  close.onclick = (e) => {
+    e.stopPropagation();
+    nav.classList.remove('open');
+  };
   nav.appendChild(close);
 
   const me = $('profile-bar')?.dataset.me === 'true';
