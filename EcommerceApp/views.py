@@ -230,7 +230,7 @@ def create_order(request):
     try:
         with transaction.atomic():
             cart, shipping, billing, subtotal, shipping_fee, discount = quote(request.user, request.data)
-            items = list(cart.items.select_for_update().select_related('product', 'variant'))
+            items = list(cart.items.select_for_update().select_related('product'))
             for item in items:
                 if item.quantity > item.available_stock: raise ValueError(f'{item.product.name} no longer has enough stock.')
             method = request.data.get('payment_method', Order.PAYSTACK)
@@ -255,7 +255,7 @@ def create_order(request):
                 order.save(update_fields=['payment_status', 'updated_at'])
         return Response(OrderSerializer(order).data, status=201)
     except (ValueError, Address.DoesNotExist) as exc: return error(str(exc))
-    except Exception as exc: return error(f'Something went wrong while placing your order. Please try again. ({type(exc).__name__}: {exc})', status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as exc: return error('Something went wrong while placing your order. Please try again.', status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
