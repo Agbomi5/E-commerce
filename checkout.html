@@ -62,8 +62,8 @@
       const params = new URLSearchParams(location.search);
       const reference = params.get('reference') || params.get('trxref');
       if (reference) {
-        fetch('/auth/csrf/', { method: 'GET', credentials: 'include' }).then(() => {
-          return fetch(`/payments/verify/${encodeURIComponent(reference)}/`, { method: 'POST', credentials: 'include', headers: { 'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] } });
+        fetch('/api/auth/csrf/', { method: 'GET', credentials: 'include' }).then(() => {
+          return fetch(`/api/payments/verify/${encodeURIComponent(reference)}/`, { method: 'POST', credentials: 'include', headers: { 'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] } });
         }).then(r => r.json()).then(data => {
           const el = document.createElement('p'); el.className = 'message'; el.style.color = data.status === 'success' ? '#86efac' : '#f87171';
           el.textContent = data.status === 'success' ? 'Payment successful! Your order has been confirmed.' : data.status === 'failed' ? 'Payment failed. Please try again.' : 'Payment is pending confirmation.';

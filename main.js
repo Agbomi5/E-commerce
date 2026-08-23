@@ -61,12 +61,13 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
   const rating = document.createElement('div'); rating.className = 'card-rating'; const stars = document.createElement('span'); stars.className = 'rating-stars'; renderStars(stars, product.rating?.average_rating); const count = document.createElement('span'); count.textContent = `(${product.rating?.total_reviews || 0})`; rating.append(stars, count);
   const actions = document.createElement('div'); actions.className = 'product-actions';
   const add = document.createElement('button'); add.type = 'button'; add.textContent = product.in_stock === false ? 'Out of stock' : 'Add to cart'; add.disabled = product.in_stock === false;
-  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: 1 }) }); await renderHeader(); updateCartNotification(); setMessage(`${product.name} was added to your cart.`); } catch (error) { setMessage(error.message, true); } };
+  add.onclick = async event => { event.preventDefault(); if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: 1 }) }); await renderHeader(); updateCartNotification(); setMessage(`${product.name} was added to your cart.`); } catch (error) { setMessage(error.message, true); } };
   const link = document.createElement('a'); link.className = 'button-link'; link.href = `product.html?slug=${encodeURIComponent(product.slug)}`; link.textContent = 'View product'; link.onclick = event => { event.preventDefault(); card.classList.add('is-clicking'); setTimeout(() => { location.href = link.href; }, 320); };
   const wishlist = document.createElement('button'); wishlist.type = 'button'; wishlist.className = 'secondary wishlist-toggle';
   const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥ Saved' : '♡ Wishlist'; wishlist.setAttribute('aria-pressed', String(saved)); };
   setWishlistLabel(wishlisted);
-  wishlist.onclick = async () => {
+  wishlist.onclick = async event => {
+    event.preventDefault();
     if (!await currentUser()) return requireLogin();
     const saved = wishlist.getAttribute('aria-pressed') === 'true';
     try {
@@ -217,14 +218,15 @@ async function loadProduct() {
   const changeQuantity = amount => { quantity.value = Math.max(1, (Number(quantity.value) || 1) + amount); };
   $('quantity-decrease').onclick = () => changeQuantity(-1); $('quantity-increase').onclick = () => changeQuantity(1);
   quantity.onchange = () => { quantity.value = Math.max(1, Number(quantity.value) || 1); };
-  add.onclick = async () => { if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: Number(quantity.value) || 1 }) }); updateCartNotification(); location.href = 'cart.html'; } catch (error) { setMessage(error.message, true); } };
+  add.onclick = async event => { event.preventDefault(); if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: Number(quantity.value) || 1 }) }); updateCartNotification(); location.href = 'cart.html'; } catch (error) { setMessage(error.message, true); } };
   const wishlist = $('wishlist-button');
   const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥ Saved to wishlist' : '♡ Save to wishlist'; wishlist.setAttribute('aria-pressed', String(saved)); };
   const me = await currentUser();
   let saved = false;
   if (me) { try { saved = (await api('/wishlist/')).some(item => item.product.id === product.id); } catch { /* The product remains purchasable if the wishlist cannot be loaded. */ } }
   setWishlistLabel(saved);
-  wishlist.onclick = async () => {
+  wishlist.onclick = async event => {
+    event.preventDefault();
     if (!await currentUser()) return requireLogin();
     const isSaved = wishlist.getAttribute('aria-pressed') === 'true';
     try { await api(`/wishlist/${product.id}/`, { method: isSaved ? 'DELETE' : 'POST' }); setWishlistLabel(!isSaved); setMessage(!isSaved ? 'Saved to your wishlist.' : 'Removed from your wishlist.'); } catch (error) { setMessage(error.message, true); }
@@ -284,12 +286,7 @@ async function loadCheckout() {
     closeBankModal();
     try {
       const id = select.value;
-      const selectedMethod = document.querySelector('input[name="payment-method"]:checked');
-      if (!selectedMethod) { setMessage('Please select a payment method.', true); return; }
-      const methodValue = selectedMethod.value;
-      const savedPaymentMethodId = methodValue.startsWith('saved:') ? Number(methodValue.slice(6)) : null;
-      const paymentMethod = savedPaymentMethodId ? 'paystack' : methodValue;
-      const order = await api('/orders/create/', { method: 'POST', body: JSON.stringify({ shipping_address_id: id, billing_address_id: id, payment_method: paymentMethod }) });
+      const order = await api('/orders/create/', { method: 'POST', body: JSON.stringify({ shipping_address_id: id, billing_address_id: id, payment_method: 'bank_transfer' }) });
       $('checkout-result').classList.remove('hidden');
       $('checkout-result').textContent = `Order ${order.number} placed successfully! Your order will be processed once payment is confirmed.`;
     } catch (error) { setMessage(error.message, true); }

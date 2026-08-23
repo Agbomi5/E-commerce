@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.db import transaction
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -76,7 +76,7 @@ def category_list(request): return Response(CategoryListSerializer(Category.obje
 @api_view(['GET'])
 def category_detail(request, slug): return Response(CategoryDetailSerializer(get_object_or_404(Category, slug=slug), context={'request': request}).data)
 @api_view(['GET'])
-def product_search(request): return product_list(request)
+def product_search(request): return product_list(request._request)
 
 @api_view(['POST'])
 def register(request):
@@ -207,8 +207,11 @@ def wishlist(request, product_id=None):
 def quote(user, payload):
     cart = cart_for(user)
     if not cart.items.exists(): raise ValueError('Your cart is empty.')
-    shipping = get_object_or_404(Address, pk=payload.get('shipping_address_id'), user=user)
-    billing = get_object_or_404(Address, pk=payload.get('billing_address_id', shipping.id), user=user)
+    try:
+        shipping = get_object_or_404(Address, pk=payload.get('shipping_address_id'), user=user)
+        billing = get_object_or_404(Address, pk=payload.get('billing_address_id', shipping.id), user=user)
+    except Http404:
+        raise ValueError('Invalid shipping or billing address selected.')
     rate = ShippingRate.objects.filter(is_active=True).filter(Q(state__iexact=shipping.state) | Q(state='')).order_by('-state').first()
     if not rate: raise ValueError('No shipping rate is configured for this destination.')
     subtotal = cart.subtotal
@@ -252,6 +255,7 @@ def create_order(request):
                 order.save(update_fields=['payment_status', 'updated_at'])
         return Response(OrderSerializer(order).data, status=201)
     except (ValueError, Address.DoesNotExist) as exc: return error(str(exc))
+    except Exception as exc: return error('Something went wrong while placing your order. Please try again.', status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -302,7 +306,7 @@ def payment_retry(request, number):
     if order.payment_status == Order.PAID: return error('This order is already paid.')
     if order.payment_status == Order.FAILED:
         order.payment_status = Order.PENDING; order.save(update_fields=['payment_status', 'updated_at'])
-    return payment_initialize(request, number)
+    return payment_initialize(request._request, number)
 
 
 @api_view(['GET'])
