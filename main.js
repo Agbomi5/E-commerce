@@ -165,6 +165,9 @@ function renderMobileNav() {
   nav.appendChild(close);
 
   const me = $('profile-bar')?.dataset.me === 'true';
+  const homeLinks = [['index.html', 'Home'], ['category.html?slug=phones', 'Phones'], ['category.html?slug=laptops', 'Laptops'], ['index.html#category-section', 'Accessories'], ['index.html#product-section', 'All Products']];
+  homeLinks.forEach(([href, label]) => { const link = document.createElement('a'); link.href = href; link.textContent = label; nav.appendChild(link); });
+  const phone = document.createElement('a'); phone.className = 'mobile-help'; phone.href = 'tel:+2348136239556'; phone.textContent = 'Call / WhatsApp  ·  +234 813 623 9556'; nav.appendChild(phone);
   if (me) {
     const account = document.createElement('a');
     account.href = 'account.html';
@@ -188,6 +191,14 @@ function renderMobileNav() {
   }
 }
 
+function renderBottomNav() {
+  if (document.querySelector('.mobile-bottom-nav')) return;
+  const nav = document.createElement('nav'); nav.className = 'mobile-bottom-nav'; nav.setAttribute('aria-label', 'Quick navigation');
+  const items = [['index.html', '⌂', 'Home'], ['index.html#category-section', '▦', 'Categories'], ['cart.html', '🛒', 'Cart'], ['account.html#wishlist', '♡', 'Wishlist'], ['account.html', '◉', 'Account']];
+  items.forEach(([href, icon, label]) => { const link = document.createElement('a'); link.href = href; link.innerHTML = `<span>${icon}</span><small>${label}</small>`; if (location.pathname.endsWith(href.split('#')[0])) link.classList.add('active'); nav.appendChild(link); });
+  document.body.appendChild(nav);
+}
+
 async function loadHome() {
   const query = new URLSearchParams(location.search).get('query');
   const [products, categories] = await Promise.all([api(`/product_list/${query ? `?query=${encodeURIComponent(query)}` : ''}`), api('/categories/')]);
@@ -199,7 +210,11 @@ async function loadCategory() {
   const category = await api(`/categories/${encodeURIComponent(slug)}/`);
   $('category-title').textContent = category.name;
   const image = document.createElement('img'); image.src = imageUrl(category.image); image.alt = category.name; $('category-image').replaceChildren(image);
-  const grid = $('category-products'); grid.replaceChildren(...category.products.map(productCard)); if (!category.products.length) empty(grid, 'No products are available in this category yet.');
+  const grid = $('category-products');
+  const count = $('product-count'); if (count) count.textContent = `${category.products.length} product${category.products.length === 1 ? '' : 's'}`;
+  const renderProducts = products => { grid.replaceChildren(...products.map(productCard)); if (!products.length) empty(grid, 'No products are available in this category yet.'); };
+  renderProducts(category.products);
+  const sorter = $('category-sort'); if (sorter) sorter.onchange = () => { const products = [...category.products]; const price = item => Number(item.current_price ?? item.sale_price ?? item.price ?? 0); if (sorter.value === 'low') products.sort((a, b) => price(a) - price(b)); if (sorter.value === 'high') products.sort((a, b) => price(b) - price(a)); renderProducts(products); };
 }
 async function loadProduct() {
   const slug = new URLSearchParams(location.search).get('slug'); if (!slug) throw new Error('No product was selected.');
@@ -341,4 +356,4 @@ async function submitAuth(event, endpoint) {
   }
 }
 function bindAuthTabs() { const login = $('login-form'), signup = $('signup-form'), loginTab = $('login-tab'), signupTab = $('signup-tab'); const show = view => { const isLogin = view === 'login'; login.classList.toggle('hidden', !isLogin); signup.classList.toggle('hidden', isLogin); loginTab.classList.toggle('active', isLogin); signupTab.classList.toggle('active', !isLogin); loginTab.setAttribute('aria-selected', String(isLogin)); signupTab.setAttribute('aria-selected', String(!isLogin)); }; loginTab.onclick = () => show('login'); signupTab.onclick = () => show('signup'); }
-document.addEventListener('DOMContentLoaded', async () => { try { await api('/auth/csrf/'); bindSearch(); bindMobileMenu(); renderMobileNav(); await renderHeader(); await renderFooter(); const page = location.pathname.split('/').pop() || 'index.html'; if (page === 'index.html') await loadHome(); else if (page === 'category.html') await loadCategory(); else if (page === 'product.html') await loadProduct(); else if (page === 'cart.html') await loadCart(); else if (page === 'checkout.html') await loadCheckout(); else if (page === 'account.html') await loadAccount(); else if (page === 'auth.html') { bindAuthTabs(); $('login-form').onsubmit = event => submitAuth(event, '/auth/login/'); $('signup-form').onsubmit = event => submitAuth(event, '/auth/register/'); } } catch (error) { setMessage(error.message, true); } });
+document.addEventListener('DOMContentLoaded', async () => { try { await api('/auth/csrf/'); bindSearch(); bindMobileMenu(); renderMobileNav(); renderBottomNav(); await renderHeader(); await renderFooter(); const page = location.pathname.split('/').pop() || 'index.html'; if (page === 'index.html') await loadHome(); else if (page === 'category.html') await loadCategory(); else if (page === 'product.html') await loadProduct(); else if (page === 'cart.html') await loadCart(); else if (page === 'checkout.html') await loadCheckout(); else if (page === 'account.html') await loadAccount(); else if (page === 'auth.html') { bindAuthTabs(); $('login-form').onsubmit = event => submitAuth(event, '/auth/login/'); $('signup-form').onsubmit = event => submitAuth(event, '/auth/register/'); } } catch (error) { setMessage(error.message, true); } });
