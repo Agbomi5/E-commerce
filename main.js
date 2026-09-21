@@ -54,17 +54,19 @@ function renderStars(target, value) {
 }
 function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
   const card = document.createElement('article'); card.className = 'product-card card';
-  const img = document.createElement('img'); img.src = imageUrl(product.image); img.alt = product.name;
+  const detailsHref = `product.html?slug=${encodeURIComponent(product.slug)}`;
+  const media = document.createElement('a'); media.className = 'product-media'; media.href = detailsHref; media.setAttribute('aria-label', `View ${product.name}`);
+  const img = document.createElement('img'); img.src = imageUrl(product.image); img.alt = product.name; media.appendChild(img);
   const body = document.createElement('div'); body.className = 'card-body';
-  const title = document.createElement('h3'); title.textContent = product.name;
+  const title = document.createElement('h3'); const titleLink = document.createElement('a'); titleLink.href = detailsHref; titleLink.textContent = product.name; title.appendChild(titleLink);
   const price = document.createElement('p'); price.className = 'price'; price.textContent = naira(product.current_price ?? product.sale_price ?? product.price);
   const rating = document.createElement('div'); rating.className = 'card-rating'; const stars = document.createElement('span'); stars.className = 'rating-stars'; renderStars(stars, product.rating?.average_rating); const count = document.createElement('span'); count.textContent = `(${product.rating?.total_reviews || 0})`; rating.append(stars, count);
   const actions = document.createElement('div'); actions.className = 'product-actions';
   const add = document.createElement('button'); add.type = 'button'; add.textContent = product.in_stock === false ? 'Out of stock' : 'Add to cart'; add.disabled = product.in_stock === false;
   add.onclick = async event => { event.preventDefault(); if (!await currentUser()) return requireLogin(); try { await api('/cart/items/', { method: 'POST', body: JSON.stringify({ product_id: product.id, quantity: 1 }) }); await renderHeader(); updateCartNotification(); setMessage(`${product.name} was added to your cart.`); } catch (error) { setMessage(error.message, true); } };
-  const link = document.createElement('a'); link.className = 'button-link'; link.href = `product.html?slug=${encodeURIComponent(product.slug)}`; link.textContent = 'View product'; link.onclick = event => { event.preventDefault(); card.classList.add('is-clicking'); setTimeout(() => { location.href = link.href; }, 320); };
   const wishlist = document.createElement('button'); wishlist.type = 'button'; wishlist.className = 'secondary wishlist-toggle';
-  const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥ Saved' : '♡ Wishlist'; wishlist.setAttribute('aria-pressed', String(saved)); };
+  wishlist.setAttribute('aria-label', 'Save to wishlist');
+  const setWishlistLabel = saved => { wishlist.textContent = saved ? '♥' : '♡'; wishlist.setAttribute('aria-pressed', String(saved)); wishlist.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Save to wishlist'); };
   setWishlistLabel(wishlisted);
   wishlist.onclick = async event => {
     event.preventDefault();
@@ -77,7 +79,7 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
       if (onWishlistChange) onWishlistChange(!saved);
     } catch (error) { setMessage(error.message, true); }
   };
-  actions.append(add, link, wishlist); body.append(title, price, rating, actions); card.append(img, body); return card;
+  media.append(wishlist); actions.append(add); body.append(title, price, rating, actions); card.append(media, body); return card;
 }
 async function currentUser() { try { return await api('/auth/me/'); } catch { return null; } }
 function requireLogin() { location.href = 'auth.html'; }
@@ -195,7 +197,7 @@ function renderBottomNav() {
   if (document.querySelector('.mobile-bottom-nav')) return;
   const nav = document.createElement('nav'); nav.className = 'mobile-bottom-nav'; nav.setAttribute('aria-label', 'Quick navigation');
   const items = [['index.html', '⌂', 'Home'], ['index.html#category-section', '▦', 'Categories'], ['cart.html', '🛒', 'Cart'], ['account.html#wishlist', '♡', 'Wishlist'], ['account.html', '◉', 'Account']];
-  items.forEach(([href, icon, label]) => { const link = document.createElement('a'); link.href = href; link.innerHTML = `<span>${icon}</span><small>${label}</small>`; if (location.pathname.endsWith(href.split('#')[0])) link.classList.add('active'); nav.appendChild(link); });
+  items.forEach(([href, icon, label]) => { const link = document.createElement('a'); link.href = href; link.innerHTML = `<span>${icon}</span><small>${label}</small>`; const [page, hash] = href.split('#'); const currentPage = location.pathname.split('/').pop() || 'index.html'; if (currentPage === page && (hash ? location.hash === `#${hash}` : !location.hash)) link.classList.add('active'); nav.appendChild(link); });
   document.body.appendChild(nav);
 }
 
