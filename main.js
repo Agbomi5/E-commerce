@@ -205,7 +205,24 @@ async function loadHome() {
   const query = new URLSearchParams(location.search).get('query');
   const [products, categories] = await Promise.all([api(`/product_list/${query ? `?query=${encodeURIComponent(query)}` : ''}`), api('/categories/')]);
   const productGrid = $('product-grid'); productGrid.replaceChildren(...products.map(productCard)); if (!products.length) empty(productGrid, 'No products match that search.');
-  const categoryGrid = $('category-grid'); categoryGrid.replaceChildren(...categories.map(category => { const card = document.createElement('a'); card.className = 'category-card card'; card.href = `category.html?slug=${encodeURIComponent(category.slug)}`; const img = document.createElement('img'); img.src = imageUrl(category.image); img.alt = ''; const title = document.createElement('span'); title.textContent = category.name; const arrow = document.createElement('span'); arrow.className = 'category-arrow'; arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '→'; card.append(img, title, arrow); return card; }));
+  const categoryGrid = $('category-grid');
+  categoryGrid.replaceChildren(...categories.map(category => {
+    const card = document.createElement('a');
+    card.className = 'category-avatar-card';
+    card.href = `category.html?slug=${encodeURIComponent(category.slug)}`;
+    card.setAttribute('aria-label', category.name);
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar-circle';
+    const img = document.createElement('img');
+    img.src = imageUrl(category.image);
+    img.alt = '';
+    avatar.appendChild(img);
+    const label = document.createElement('span');
+    label.className = 'avatar-label';
+    label.textContent = category.name;
+    card.append(avatar, label);
+    return card;
+  }));
 }
 async function loadCategory() {
   const slug = new URLSearchParams(location.search).get('slug'); if (!slug) throw new Error('No category was selected.');
