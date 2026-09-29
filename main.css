@@ -192,16 +192,30 @@ textarea {
 }
 
 .cart-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-}
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #d8dee8;
+    border-radius: 12px;
+    background: #fff;
+    color: #0b1220;
+  }
+
+  /* The cart is the one light panel on a dark page, so anything inside it
+     that inherited the page's light text has to be re-inked to stay legible. */
+  .cart-row span { color: #0b1220; }
+  .cart-row .secondary {
+    background: transparent;
+    border: 1px solid #9aa7b8;
+    color: #0b1220;
+  }
+  .cart-row .secondary:hover { background: #eef2f7; }
+  .cart-row button:disabled { opacity: .45; }
+
+  .account-session p { color: #9fb0c4; margin: 0 0 .75rem; }
 
 .cart-row span {
   flex: 1 1 220px;
@@ -648,15 +662,15 @@ button.secondary {
 }
 
 .detail-image img {
-  width: 100%;
-  height: 100%;
-  max-height: 420px;
-  object-fit: cover;
-  display: block;
-  margin: 0;
-  padding: 0;
-  transition: opacity 280ms ease-out, transform 280ms ease-out;
-}
+    width: 100%;
+    height: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    display: block;
+    margin: 0;
+    padding: .5rem;
+    transition: opacity 280ms ease-out, transform 280ms ease-out;
+  }
 
 .product-gallery {
   min-width: 0;
@@ -1074,12 +1088,13 @@ button.secondary {
     border-radius: 0;
   }
 
-  .detail-image img {
-    max-height: 300px;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 0;
-  }
+    .detail-image img {
+      max-height: 300px;
+      height: 100%;
+      object-fit: contain;
+      padding: .35rem;
+      border-radius: 0;
+    }
 
   .detail-copy {
     padding: 1rem;

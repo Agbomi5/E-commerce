@@ -347,6 +347,8 @@ async function loadCheckout() {
 }
 async function loadAccount() {
   if (!await currentUser()) return requireLogin();
+  const logout = $('logout-button');
+  if (logout) logout.onclick = async () => { logout.disabled = true; try { await api('/auth/logout/', { method: 'POST' }); location.href = 'auth.html'; } catch (error) { logout.disabled = false; setMessage(error.message, true); } };
   const form = $('address-form'), panel = $('address-form-panel'), idField = $('address-id'), title = $('address-form-title');
   const closeForm = () => { form.reset(); idField.value = ''; panel.classList.add('hidden'); };
   const openForm = address => { form.reset(); idField.value = address?.id || ''; title.textContent = address ? 'Edit delivery address' : 'Add a delivery address'; if (address) ['full_name', 'phone', 'line1', 'city', 'state'].forEach(field => { form.elements[field].value = address[field] || ''; }); panel.classList.remove('hidden'); panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
