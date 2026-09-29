@@ -17,9 +17,15 @@ body{background:var(--ink);color:#f4f8ff}.site-header{background:rgba(5,9,20,.9)
 /* 2026 storefront refresh */
 :root { --ink: #050914; --panel: #0b1220; --cyan: #28c7ff; --line: rgba(148, 163, 184, .18); }
 body { background: var(--ink); }
-.site-header { background: rgba(5,9,20,.9); border-color: var(--line); backdrop-filter: blur(16px); }
-.header-inner { max-width: 1320px; min-height: 72px; padding: .75rem 1.25rem; flex-wrap: nowrap; }
-.brand { letter-spacing: .07em; font-size: .9rem; white-space: nowrap; }
+/* The base header rules further down this file outrank the theme block on
+   source order, which inflated the header on desktop. Re-assert them at a
+   higher specificity, scoped to desktop so the mobile media queries, which
+   carry no extra specificity, still win at phone widths. */
+body .site-header { background: rgba(5,9,20,.9); border-color: var(--line); backdrop-filter: blur(16px); }
+@media (min-width: 768px) {
+  body .header-inner { max-width: 1320px; min-height: 58px; padding: .5rem 1.25rem; flex-wrap: nowrap; }
+  body .brand { letter-spacing: .07em; font-size: .9rem; white-space: nowrap; }
+}
 .primary-nav { display: flex; align-items: center; gap: 1.35rem; margin: 0 auto; }
 .primary-nav a { color: #b6c2d3; font-size: .86rem; font-weight: 650; }.primary-nav a:hover { color: white; }
 .search-form input { background: #111a29; border-color: var(--line); color: white; }.search-form button,.button-link,button { background: linear-gradient(135deg,#36d5ff,#3284ff); color:#03111c; font-weight: 750; }
