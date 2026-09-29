@@ -198,22 +198,10 @@ textarea {
     gap: 0.65rem;
     padding: 1rem;
     margin-bottom: 0.75rem;
-    border: 1px solid #d8dee8;
+    border: 1px solid var(--border);
     border-radius: 12px;
-    background: #fff;
-    color: #0b1220;
+    background: var(--surface);
   }
-
-  /* The cart is the one light panel on a dark page, so anything inside it
-     that inherited the page's light text has to be re-inked to stay legible. */
-  .cart-row span { color: #0b1220; }
-  .cart-row .secondary {
-    background: transparent;
-    border: 1px solid #9aa7b8;
-    color: #0b1220;
-  }
-  .cart-row .secondary:hover { background: #eef2f7; }
-  .cart-row button:disabled { opacity: .45; }
 
   .account-session p { color: #9fb0c4; margin: 0 0 .75rem; }
 
@@ -665,10 +653,10 @@ button.secondary {
     width: 100%;
     height: 100%;
     max-height: 420px;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
     margin: 0;
-    padding: .5rem;
+    padding: 0;
     transition: opacity 280ms ease-out, transform 280ms ease-out;
   }
 
@@ -1091,8 +1079,7 @@ button.secondary {
     .detail-image img {
       max-height: 300px;
       height: 100%;
-      object-fit: contain;
-      padding: .35rem;
+      object-fit: cover;
       border-radius: 0;
     }
 
@@ -1568,6 +1555,29 @@ body { color: #f8fafc; }
 .product-card h3 a { color: #f8fafc; text-decoration: none; }.product-card h3 a:hover { color: #67e8f9; }
 .product-actions { display: block; margin-top: auto; }.product-actions button { width: 100%; }.product-actions button:first-child { grid-column: auto; }
 .mobile-bottom-nav a { color: #94a3b8; }.mobile-bottom-nav a.active, .mobile-bottom-nav a:hover { color: #38d8ff; }
+
+/* Product cards are the one light surface on the dark storefront, so every
+   child that inherited the page's light-on-dark colours is re-inked here. */
+.product-card {
+  background: #fff;
+  border-color: #d8dee8;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .38);
+}
+.product-card:hover { border-color: #7cc4f5; }
+.product-card .product-media { background: #f4f7fb; }
+.product-card h3,
+.product-card h3 a { color: #0b1220; }
+.product-card h3 a:hover { color: #0a5fa8; }
+.product-card .price { color: #0a5fa8; }
+.product-card .card-rating { color: #5b6a7d; }
+.product-card p { color: #5b6a7d; }
+.product-card .product-actions .secondary {
+  background: #eef2f7;
+  border: 1px solid #9aa7b8;
+  color: #0b1220;
+}
+.product-card .product-actions .secondary:hover { background: #e2e9f2; }
+
 @media (max-width: 767px) {
   .premium-hero { padding-bottom: 10rem; }
   .hero-actions { display: grid; grid-template-columns: 1fr; gap: .75rem; width: 100%; }
