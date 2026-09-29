@@ -1565,6 +1565,11 @@ body { color: #f8fafc; }
 }
 .product-card:hover { border-color: #7cc4f5; }
 .product-card .product-media { background: #f4f7fb; }
+/* The tile is a fixed 1:1 square but the product photos are 3:4 and ~1.4:1,
+   so contain letterboxed a quarter to a third of every card as empty gutter.
+   These are full-bleed photographs rather than cutouts, so cover fills the
+   tile and the crop is far less visible than the gap it replaces. */
+.product-card .product-media img { object-fit: cover; padding: 0; }
 .product-card h3,
 .product-card h3 a { color: #0b1220; }
 .product-card h3 a:hover { color: #0a5fa8; }
