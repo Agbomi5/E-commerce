@@ -39,14 +39,34 @@ class ProductListSerializer(serializers.ModelSerializer):
     in_stock = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
+    card_image = serializers.SerializerMethodField()
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'sale_price', 'current_price', 'slug', 'image', 'featured', 'sku', 'stock_quantity', 'in_stock', 'rating']
+        fields = ['id', 'name', 'price', 'sale_price', 'current_price', 'slug', 'image', 'card_image', 'featured', 'sku', 'stock_quantity', 'in_stock', 'rating']
     def get_in_stock(self, obj): return obj.stock_quantity > 0 or obj.variants.filter(is_active=True, stock_quantity__gt=0).exists()
     def get_rating(self, obj):
         try: rating = obj.rating
         except ProductRating.DoesNotExist: return {'average_rating': 0, 'total_reviews': 0}
         return {'average_rating': rating.average_rating, 'total_reviews': rating.total_reviews}
+    def get_card_image(self, obj):
+        """Cutout version of the photo for grid tiles, so the product sits on the
+        card without a rectangular photo edge. The product detail page keeps using
+        the untouched `image`, so it is unaffected. A photo the remover cannot
+        isolate (a multi-object marketing shot, say) is still returned; it just
+        comes back whole rather than cut out."""
+        from django.conf import settings
+        if not obj.image or not settings.USE_CLOUDINARY:
+            return None
+        import cloudinary
+        try:
+            # format must be the build_url kwarg, not a transformation entry:
+            # as a transformation it collides with the version component and is
+            # dropped, which delivers the cutout as jpeg and loses the alpha.
+            return cloudinary.CloudinaryImage(str(obj.image)).build_url(
+                transformation=[{'effect': 'background_removal'}, {'crop': 'limit', 'width': 600}, {'quality': 'auto'}],
+                format='png')
+        except Exception:
+            return None
     def get_image(self, obj):
         from django.conf import settings
         if not obj.image:

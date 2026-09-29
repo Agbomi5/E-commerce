@@ -56,7 +56,13 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
   const card = document.createElement('article'); card.className = 'product-card card';
   const detailsHref = `product.html?slug=${encodeURIComponent(product.slug)}`;
   const media = document.createElement('a'); media.className = 'product-media'; media.href = detailsHref; media.setAttribute('aria-label', `View ${product.name}`);
-  const img = document.createElement('img'); img.src = imageUrl(product.image); img.alt = product.name; media.appendChild(img);
+  const img = document.createElement('img'); img.src = imageUrl(product.card_image || product.image); img.alt = product.name; img.loading = 'lazy'; img.decoding = 'async';
+  // If the cutout cannot be built or delivered, fall back to the original photo
+  // rather than leaving a broken image on the card.
+  if (product.card_image && product.image && product.card_image !== product.image) {
+    img.addEventListener('error', () => { img.src = imageUrl(product.image); }, { once: true });
+  }
+  media.appendChild(img);
   const body = document.createElement('div'); body.className = 'card-body';
   const title = document.createElement('h3'); const titleLink = document.createElement('a'); titleLink.href = detailsHref; titleLink.textContent = product.name; title.appendChild(titleLink);
   const price = document.createElement('p'); price.className = 'price'; price.textContent = naira(product.current_price ?? product.sale_price ?? product.price);

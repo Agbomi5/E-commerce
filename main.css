@@ -1565,11 +1565,12 @@ body { color: #f8fafc; }
 }
 .product-card:hover { border-color: #7cc4f5; }
 .product-card .product-media { background: #f4f7fb; }
-/* The tile is a fixed 1:1 square but the product photos are 3:4 and ~1.4:1,
-   so contain letterboxed a quarter to a third of every card as empty gutter.
-   These are full-bleed photographs rather than cutouts, so cover fills the
-   tile and the crop is far less visible than the gap it replaces. */
-.product-card .product-media img { object-fit: cover; padding: 0; }
+/* The card is fed a background-removed cutout, so contain keeps the whole
+   product visible with no crop. The cutout's transparent margin blends into the
+   pale tile above, which is what removes the empty gutter. A photo the remover
+   could not cut out stays whole and simply sits centred on the tile. The API
+   also scales cards to 600px rather than serving the full-size original. */
+.product-card .product-media img { object-fit: contain; padding: .75rem; }
 .product-card h3,
 .product-card h3 a { color: #0b1220; }
 .product-card h3 a:hover { color: #0a5fa8; }
