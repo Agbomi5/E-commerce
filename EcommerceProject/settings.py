@@ -197,6 +197,9 @@ if USE_CLOUDINARY:
         cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
         api_key=os.environ.get('CLOUDINARY_API_KEY'),
         api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        # Without this, build_url() returns http:// urls, which browsers refuse
+        # to load on an https page as mixed content, so no image ever renders.
+        secure=True,
     )
     DEFAULT_FILE_STORAGE = 'storages.backends.cloudinary.CloudinaryStorage'
 
