@@ -49,22 +49,19 @@ class ProductListSerializer(serializers.ModelSerializer):
         except ProductRating.DoesNotExist: return {'average_rating': 0, 'total_reviews': 0}
         return {'average_rating': rating.average_rating, 'total_reviews': rating.total_reviews}
     def get_card_image(self, obj):
-        """Cutout version of the photo for grid tiles, so the product sits on the
-        card without a rectangular photo edge. The product detail page keeps using
-        the untouched `image`, so it is unaffected. A photo the remover cannot
-        isolate (a multi-object marketing shot, say) is still returned; it just
-        comes back whole rather than cut out."""
+        """Right-sized version of the photo for grid tiles. Deliberately no
+        background removal: these are hand-held product shots where the hands are
+        15-25% of the frame, and AI segmentation discards them along with the
+        background, leaving the product floating in a torn silhouette. The card
+        is laid out to fit the photo instead, so there is no gutter to hide.
+        The product detail page keeps using the untouched `image`."""
         from django.conf import settings
         if not obj.image or not settings.USE_CLOUDINARY:
             return None
         import cloudinary
         try:
-            # format must be the build_url kwarg, not a transformation entry:
-            # as a transformation it collides with the version component and is
-            # dropped, which delivers the cutout as jpeg and loses the alpha.
             return cloudinary.CloudinaryImage(str(obj.image)).build_url(
-                transformation=[{'effect': 'background_removal'}, {'crop': 'limit', 'width': 600}, {'quality': 'auto'}],
-                format='png')
+                transformation=[{'crop': 'limit', 'width': 600}, {'quality': 'auto'}])
         except Exception:
             return None
     def get_image(self, obj):

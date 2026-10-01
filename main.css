@@ -1565,12 +1565,17 @@ body { color: #f8fafc; }
 }
 .product-card:hover { border-color: #7cc4f5; }
 .product-card .product-media { background: #f4f7fb; }
-/* The card is fed a background-removed cutout, so contain keeps the whole
-   product visible with no crop. The cutout's transparent margin blends into the
-   pale tile above, which is what removes the empty gutter. A photo the remover
-   could not cut out stays whole and simply sits centred on the tile. The API
-   also scales cards to 600px rather than serving the full-size original. */
-.product-card .product-media img { object-fit: contain; padding: .75rem; }
+/* These are hand-held product shots (3:4 and ~1.4:1), so a fixed square tile
+   either letterboxed a third of every card as empty gutter or, with cover,
+   cropped the hands and product out of frame. Instead the tile takes the photo's
+   own height: no gutter, no crop, hands intact. The card is already a flex
+   column of equal height, so letting the body grow and the buttons sit at its
+   bottom keeps a row of mixed-height photos aligned. The API serves cards at
+   600px wide. */
+.product-card .product-media { aspect-ratio: auto; }
+.product-card .product-media img { width: 100%; height: auto; padding: 0; object-fit: contain; }
+.product-card .card-body { flex: 1; display: flex; flex-direction: column; }
+.product-card .product-actions { margin-top: auto; }
 .product-card h3,
 .product-card h3 a { color: #0b1220; }
 .product-card h3 a:hover { color: #0a5fa8; }
@@ -1591,6 +1596,4 @@ body { color: #f8fafc; }
   .hero-visual { top: 280px; opacity: .8; }
   .trust-row { bottom: 1.2rem; }
   .page-content { padding-bottom: 5.5rem; }
-  .product-card .product-media { aspect-ratio: 1 / 1; }
-  .product-card .product-media img { padding: .75rem; }
 }
