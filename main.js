@@ -52,7 +52,7 @@ function renderStars(target, value) {
   target.replaceChildren(...Array.from({ length: 5 }, (_, index) => { const star = document.createElement('span'); star.textContent = '★'; star.className = index < rounded ? 'is-filled' : ''; return star; }));
   target.setAttribute('aria-label', rating ? `${rating.toFixed(1)} out of 5 stars` : 'No ratings yet');
 }
-function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
+function productCard(product, { wishlisted = false, onWishlistChange, animateGallery = false } = {}) {
   const card = document.createElement('article'); card.className = 'product-card card';
   const detailsHref = `product.html?slug=${encodeURIComponent(product.slug)}`;
   const media = document.createElement('a'); media.className = 'product-media'; media.href = detailsHref; media.setAttribute('aria-label', `View ${product.name}`);
@@ -61,6 +61,18 @@ function productCard(product, { wishlisted = false, onWishlistChange } = {}) {
   // rather than leaving a broken image on the card.
   if (product.card_image && product.image && product.card_image !== product.image) {
     img.addEventListener('error', () => { img.src = imageUrl(product.image); }, { once: true });
+  }
+  const gallery = [product.card_image || product.image, ...(product.images || []).map(image => image.image)]
+    .filter((source, index, sources) => source && sources.indexOf(source) === index);
+  if (animateGallery && gallery.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let activeImage = 0;
+    window.setInterval(() => {
+      activeImage = (activeImage + 1) % gallery.length;
+      img.src = imageUrl(gallery[activeImage]);
+      media.classList.remove('image-changing');
+      void img.offsetWidth;
+      media.classList.add('image-changing');
+    }, 4200);
   }
   media.appendChild(img);
   const body = document.createElement('div'); body.className = 'card-body';
@@ -210,7 +222,7 @@ function renderBottomNav() {
 async function loadHome() {
   const query = new URLSearchParams(location.search).get('query');
   const [products, categories] = await Promise.all([api(`/product_list/${query ? `?query=${encodeURIComponent(query)}` : ''}`), api('/categories/')]);
-  const productGrid = $('product-grid'); productGrid.replaceChildren(...products.map(productCard)); if (!products.length) empty(productGrid, 'No products match that search.');
+  const productGrid = $('product-grid'); productGrid.replaceChildren(...products.map(product => productCard(product, { animateGallery: true }))); if (!products.length) empty(productGrid, 'No products match that search.');
   const categoryGrid = $('category-grid');
   categoryGrid.replaceChildren(...categories.map(category => {
     const card = document.createElement('a');

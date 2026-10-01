@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test import Client
 from django.test import override_settings
 from rest_framework.test import APIClient
-from .models import Address, Cart, CartItem, Category, Coupon, Product, ShippingRate, WishlistItem
+from .models import Address, Cart, CartItem, Category, Coupon, Product, ProductImage, ShippingRate, WishlistItem
 
 class CommerceTests(TestCase):
     def setUp(self):
@@ -25,6 +25,14 @@ class CommerceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data[0]['current_price'], '1250.00')
+
+    def test_product_listing_includes_gallery_images_for_home_cards(self):
+        ProductImage.objects.create(product=self.product, image='product_img/gallery.jpg', alt_text='Side view')
+
+        response = APIClient().get('/api/product_list/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['images'][0]['image'], 'http://testserver/media/product_img/gallery.jpg')
 
     @override_settings(PAYSTACK_SECRET_KEY='sk_test_configured')
     def test_cart_and_checkout(self):
