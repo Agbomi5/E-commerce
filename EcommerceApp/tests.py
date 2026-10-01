@@ -17,6 +17,15 @@ class CommerceTests(TestCase):
         response = self.client.post('/cart/items/', {'product_id': self.product.id, 'quantity': 4}, format='json')
         self.assertEqual(response.status_code, 400)
 
+    def test_product_listing_returns_updated_admin_price(self):
+        self.product.price = Decimal('1250.00')
+        self.product.save(update_fields=['price'])
+
+        response = APIClient().get('/api/product_list/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['current_price'], '1250.00')
+
     @override_settings(PAYSTACK_SECRET_KEY='sk_test_configured')
     def test_cart_and_checkout(self):
         self.client.post('/cart/items/', {'product_id': self.product.id, 'quantity': 2}, format='json')
