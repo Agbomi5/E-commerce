@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -59,6 +61,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'storages',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -124,10 +127,14 @@ WSGI_APPLICATION = 'EcommerceProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import os
-
-# Use PostgreSQL in production (Vercel), SQLite in development
+# Vercel instances are ephemeral, so production data must use a managed database.
+ON_VERCEL = os.environ.get('VERCEL') == '1'
 DATABASE_URL = os.environ.get('DATABASE_URL')
+if ON_VERCEL and not DATABASE_URL:
+    raise ImproperlyConfigured('Set DATABASE_URL to a persistent PostgreSQL database on Vercel.')
+if ON_VERCEL and not DATABASE_URL.lower().startswith(('postgres://', 'postgresql://')):
+    raise ImproperlyConfigured('DATABASE_URL on Vercel must point to a persistent PostgreSQL database.')
+
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {
@@ -176,33 +183,52 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# WhiteNoise for serving static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Cloudinary for media file storage in production
+# Vercel instances are ephemeral; product and category uploads must use durable storage.
 USE_CLOUDINARY = os.environ.get('USE_CLOUDINARY', 'false').lower() == 'true'
+if ON_VERCEL and not USE_CLOUDINARY:
+    raise ImproperlyConfigured('Set USE_CLOUDINARY=true and configure Cloudinary credentials on Vercel.')
+
 if USE_CLOUDINARY:
     import cloudinary
     import cloudinary.uploader
     import cloudinary.api
 
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    }
+    if ON_VERCEL and not all(CLOUDINARY_STORAGE.values()):
+        raise ImproperlyConfigured('Set all three Cloudinary credentials on Vercel.')
     cloudinary.config(
-        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        api_key=os.environ.get('CLOUDINARY_API_KEY'),
-        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+        api_key=CLOUDINARY_STORAGE['API_KEY'],
+        api_secret=CLOUDINARY_STORAGE['API_SECRET'],
         # Without this, build_url() returns http:// urls, which browsers refuse
         # to load on an https page as mixed content, so no image ever renders.
         secure=True,
     )
-    DEFAULT_FILE_STORAGE = 'storages.backends.cloudinary.CloudinaryStorage'
 
+STORAGES = {
+    'default': {
+        'BACKEND': (
+            'cloudinary_storage.storage.MediaCloudinaryStorage'
+            if USE_CLOUDINARY
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 
 # Default primary key field type
