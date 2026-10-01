@@ -131,6 +131,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return url
 
 
+class HomeProductListSerializer(ProductListSerializer):
+    images = ProductImageSerializer(many=True, read_only=True)
+
+    class Meta(ProductListSerializer.Meta):
+        fields = ProductListSerializer.Meta.fields + ['images']
+
+
 class CategoryListSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     class Meta:

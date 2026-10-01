@@ -20,7 +20,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Address, Cart, CartItem, Category, Coupon, Order, OrderItem, PaymentTransaction, Product, ProductVariant, Review, SavedPaymentMethod, ShippingRate, SiteSetting, WishlistItem
-from .serializers import (AddressSerializer, CartItemSerializer, CartSerializer, CategoryDetailSerializer, CategoryListSerializer, OrderSerializer, ProductDetailSerializer, ProductListSerializer, RegistrationSerializer, ReviewSerializer, SavedPaymentMethodSerializer, SiteSettingSerializer, UserSerializer, WishlistSerializer)
+from .serializers import (AddressSerializer, CartItemSerializer, CartSerializer, CategoryDetailSerializer, CategoryListSerializer, HomeProductListSerializer, OrderSerializer, ProductDetailSerializer, ProductListSerializer, RegistrationSerializer, ReviewSerializer, SavedPaymentMethodSerializer, SiteSettingSerializer, UserSerializer, WishlistSerializer)
 
 
 def cart_for(user): return Cart.objects.get_or_create(user=user)[0]
@@ -57,7 +57,7 @@ def validate_payment_method(method):
 
 @api_view(['GET'])
 def product_list(request):
-    products = Product.objects.filter(is_active=True).order_by('-featured', '-created_at')
+    products = Product.objects.filter(is_active=True).prefetch_related('images').order_by('-featured', '-created_at')
     query = request.query_params.get('query')
     if query: products = products.filter(Q(name__icontains=query) | Q(description__icontains=query) | Q(category__name__icontains=query))
     if category := request.query_params.get('category'): products = products.filter(category__slug=category)
@@ -67,7 +67,7 @@ def product_list(request):
     ordering = request.query_params.get('ordering', '-featured,-created_at')
     allowed = {'price', '-price', 'name', '-name', 'created_at', '-created_at', 'featured', '-featured'}
     products = products.order_by(*[field for field in ordering.split(',') if field in allowed])
-    return Response(ProductListSerializer(products, many=True, context={'request': request}).data)
+    return Response(HomeProductListSerializer(products, many=True, context={'request': request}).data)
 
 @api_view(['GET'])
 def product_detail(request, slug): return Response(ProductDetailSerializer(get_object_or_404(Product, slug=slug, is_active=True), context={'request': request}).data)
